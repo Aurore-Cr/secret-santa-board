@@ -1,21 +1,5 @@
-export default function CarteCadeau({ cadeau, proprietaire, reserveur, onReserver, onAcheter, onSupprimer }) {
-  const etiquette = cadeau.statut === 'achete' ? 'Acheté' : cadeau.statut === 'reserve' ? 'Réservé' : 'Disponible';
-  return (
-    <article className="carte-cadeau p-3 h-100">
-      <div className="icone-cadeau mb-3">🎁</div>
-      <h3 className="h5">{cadeau.titre}</h3>
-      <p className="text-secondary mb-2">Budget indicatif : {cadeau.prix} €</p>
-      {!proprietaire && (
-        <>
-          <span className="badge badge-noel mb-2">{etiquette}</span>
-          {reserveur && <p className="small mb-2">Réservé par {reserveur.nom}</p>}
-          <div className="d-flex gap-2 flex-wrap">
-            {cadeau.statut === 'disponible' && <button className="btn btn-noel btn-sm" onClick={() => onReserver(cadeau.id)}>Réserver</button>}
-            {cadeau.statut === 'reserve' && <button className="btn btn-outline-success btn-sm" onClick={() => onAcheter(cadeau.id)}>Marquer acheté</button>}
-          </div>
-        </>
-      )}
-      {proprietaire && <button className="btn btn-outline-danger btn-sm" onClick={() => onSupprimer(cadeau.id)}>Supprimer mon souhait</button>}
-    </article>
-  );
+export default function CarteCadeau({cadeau,proprietaire=false,onSupprimer,onReserver}){
+ const statut=cadeau.status;return <article className="gift-card"><div className="gift-icon"><i className="bi bi-gift-fill"/></div><h3>{cadeau.title}</h3><p className="gift-price">{cadeau.price==null?'Budget non précisé':`Budget indicatif : ${cadeau.price.toLocaleString('fr-FR')} €`}</p>
+ {!proprietaire&&<><span className={`gift-status ${statut==='purchased'?'is-purchased':statut==='reserved'?'is-reserved':''}`}>{statut==='purchased'?'Acheté':statut==='reserved'?'Réservé':'Disponible'}</span><div className="gift-actions">{statut==='available'&&<button className="btn btn-noel btn-sm" onClick={()=>onReserver(cadeau.id,'reserved')}>Réserver</button>}{cadeau.reservedByMe&&statut==='reserved'&&<button className="btn btn-noel btn-sm" onClick={()=>onReserver(cadeau.id,'purchased')}>Marquer acheté</button>}{cadeau.reservedByMe&&<button className="btn btn-outline-secondary btn-sm" onClick={()=>onReserver(cadeau.id,'release')}>Libérer</button>}</div></>}
+ {proprietaire&&<button className="btn btn-outline-danger btn-sm mt-3" onClick={()=>onSupprimer(cadeau.id)}>Supprimer mon souhait</button>}</article>;
 }

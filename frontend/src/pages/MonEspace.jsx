@@ -1,23 +1,2 @@
-import FormulaireSouhait from '../components/FormulaireSouhait.jsx';
-import CarteCadeau from '../components/CarteCadeau.jsx';
-
-export default function MonEspace({ utilisateur, cadeaux, onAjouter, onSupprimer }) {
-  const mesCadeaux = cadeaux.filter((c) => c.destinataireId === utilisateur.id);
-  return (
-    <main className="container pb-5">
-      <div className="hero-noel p-4 p-md-5 mb-4">
-        <p className="text-uppercase small mb-2">Mon espace personnel</p>
-        <h1 className="display-6 fw-bold">Bonjour {utilisateur.emoji} {utilisateur.nom}</h1>
-        <p className="mb-0">Ajoute tes envies. Les achats des autres restent secrets !</p>
-      </div>
-      <FormulaireSouhait onAjouter={onAjouter} />
-      <h2 className="h4 mb-3">Ma liste de souhaits ({mesCadeaux.length})</h2>
-      <div className="row g-3">
-        {mesCadeaux.map((c) => <div className="col-md-6 col-lg-4" key={c.id}>
-          <CarteCadeau cadeau={c} proprietaire onSupprimer={onSupprimer} />
-        </div>)}
-      </div>
-      {mesCadeaux.length === 0 && <p>Aucun souhait pour le moment.</p>}
-    </main>
-  );
-}
+import { useEffect,useState } from 'react';import {api,json} from '../lib/api.js';import FormulaireSouhait from '../components/FormulaireSouhait.jsx';import CarteCadeau from '../components/CarteCadeau.jsx';
+export default function MonEspace(){const [wishes,setWishes]=useState([]);const [error,setError]=useState('');const refresh=()=>api('/wishes/me').then(setWishes).catch(e=>setError(e.message));useEffect(()=>{refresh();},[]);async function add(v){try{await api('/wishes',json('POST',v));await refresh();}catch(e){setError(e.message);}}async function remove(id){if(!window.confirm('Supprimer ce souhait ?'))return;try{await api(`/wishes/${id}`,{method:'DELETE'});await refresh();}catch(e){setError(e.message);}}return <main className="container main-content"><section className="hero"><p className="eyebrow">MON ESPACE PERSONNEL</p><h1>Ma liste de Noël <i className="bi bi-stars"/></h1><p>Ajoute tes envies. Les réservations et les achats des autres restent secrets !</p></section>{error&&<div className="alert alert-danger">{error}</div>}<FormulaireSouhait onAjouter={add}/><section className="mt-5"><h2 className="section-heading">Mes souhaits <span className="count">{wishes.length}</span></h2>{wishes.length===0?<p>Ta liste est encore vide.</p>:<div className="row g-3">{wishes.map(w=><div className="col-12 col-sm-6 col-lg-4" key={w.id}><CarteCadeau cadeau={w} proprietaire onSupprimer={remove}/></div>)}</div>}</section></main>}

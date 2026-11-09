@@ -1,24 +1,2 @@
 import { useState } from 'react';
-
-export default function FormulaireSouhait({ onAjouter }) {
-  const [titre, setTitre] = useState('');
-  const [prix, setPrix] = useState('');
-  function envoyer(e) {
-    e.preventDefault();
-    if (!titre.trim()) return;
-    onAjouter({ titre: titre.trim(), prix: Number(prix) || 0 });
-    setTitre(''); setPrix('');
-  }
-  return (
-    <form className="carte-cadeau p-3 mb-4" onSubmit={envoyer}>
-      <h2 className="h5">Ajouter un souhait</h2>
-      <div className="row g-2">
-        <div className="col-md-7"><input className="form-control" value={titre}
-          onChange={(e) => setTitre(e.target.value)} placeholder="Ex. Livre fantasy" required /></div>
-        <div className="col-md-3"><input className="form-control" type="number" min="0"
-          value={prix} onChange={(e) => setPrix(e.target.value)} placeholder="Prix €" /></div>
-        <div className="col-md-2"><button className="btn btn-noel w-100" type="submit">Ajouter</button></div>
-      </div>
-    </form>
-  );
-}
+export default function FormulaireSouhait({onAjouter}){const [title,setTitle]=useState('');const [price,setPrice]=useState('');const [busy,setBusy]=useState(false);async function submit(e){e.preventDefault();setBusy(true);try{await onAjouter({title,price});setTitle('');setPrice('');}finally{setBusy(false);}}return <form className="panel form-panel" onSubmit={submit}><h2 className="section-heading"><i className="bi bi-stars"/> Ajouter un souhait</h2><div className="row g-3 align-items-end"><div className="col-12 col-md-7"><label className="form-label" htmlFor="wish-title">Mon idée cadeau</label><input id="wish-title" className="form-control" placeholder="Ex. : un roman fantasy" value={title} onChange={e=>setTitle(e.target.value)} required maxLength="150"/></div><div className="col-12 col-md-3"><label className="form-label" htmlFor="wish-price">Budget (€)</label><input id="wish-price" className="form-control" type="number" min="0" max="100000" step="0.01" value={price} onChange={e=>setPrice(e.target.value)}/></div><div className="col-12 col-md-2"><button disabled={busy} className="btn btn-noel w-100">Ajouter</button></div></div></form>}
