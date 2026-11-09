@@ -1,122 +1,112 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { membres, cadeauxInitiaux } from "./data/demo.js";
+import Navbar from "./components/Navbar.jsx";
+import MonEspace from "./pages/MonEspace.jsx";
+import Famille from "./pages/Famille.jsx";
+import ListeMembre from "./pages/ListeMembre.jsx";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [utilisateur, setUtilisateur] = useState(membres[0]);
+  const [cadeaux, setCadeaux] = useState(cadeauxInitiaux);
+
+  function changerUtilisateur(id) {
+    const membre = membres.find((m) => m.id === id);
+    if (membre) setUtilisateur(membre);
+  }
+
+  function ajouterCadeau(nouveauCadeau) {
+    setCadeaux((precedents) => [
+      ...precedents,
+      {
+        ...nouveauCadeau,
+        id: crypto.randomUUID(),
+        destinataireId: utilisateur.id,
+        statut: "disponible",
+        reservePar: null,
+      },
+    ]);
+  }
+
+  function supprimerCadeau(id) {
+    setCadeaux((precedents) =>
+      precedents.filter(
+        (cadeau) =>
+          !(cadeau.id === id && cadeau.destinataireId === utilisateur.id),
+      ),
+    );
+  }
+
+  function reserverCadeau(id) {
+    if (utilisateur.role !== "membre") return;
+    setCadeaux((precedents) =>
+      precedents.map((cadeau) =>
+        cadeau.id === id &&
+        cadeau.destinataireId !== utilisateur.id &&
+        cadeau.statut === "disponible"
+          ? { ...cadeau, statut: "reserve", reservePar: utilisateur.id }
+          : cadeau,
+      ),
+    );
+  }
+
+  function acheterCadeau(id) {
+    if (utilisateur.role !== "membre") return;
+    setCadeaux((precedents) =>
+      precedents.map((cadeau) =>
+        cadeau.id === id &&
+        cadeau.destinataireId !== utilisateur.id &&
+        cadeau.statut === "reserve" &&
+        cadeau.reservePar === utilisateur.id
+          ? { ...cadeau, statut: "achete" }
+          : cadeau,
+      ),
+    );
+  }
 
   return (
     <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+      <Navbar
+        utilisateur={utilisateur}
+        membres={membres}
+        onChanger={changerUtilisateur}
+      />
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <MonEspace
+              utilisateur={utilisateur}
+              cadeaux={cadeaux}
+              onAjouter={ajouterCadeau}
+              onSupprimer={supprimerCadeau}
+            />
+          }
+        />
+        <Route
+          path="/famille"
+          element={
+            utilisateur.role === "membre" ? (
+              <Famille utilisateur={utilisateur} membres={membres} />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/liste/:id"
+          element={
+            <ListeMembre
+              utilisateur={utilisateur}
+              membres={membres}
+              cadeaux={cadeaux}
+              onReserver={reserverCadeau}
+              onAcheter={acheterCadeau}
+            />
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </>
-  )
+  );
 }
-
-export default App
