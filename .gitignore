@@ -1,0 +1,20 @@
+node_modules/
+**/node_modules/
+**/dist/
+.env
+**/.env
+*.sqlite
+*.sqlite-*
+*.db
+backend/data/
+backend/dat/
+backend/sauvegardes/
+backend/sauvegarde-privee/
+*.zip
+.env.*
+!.env.example
+backend/codes-prives
+.git
+# Sauvegardes locales
+sauvegarde-avant-correctif-*/
+sauvegarde-photos-*/
