@@ -1,0 +1,12 @@
+import {useEffect,useState} from 'react';
+import {api,uploadWishPhoto} from '../api';
+import WishPhoto from '../components/WishPhoto';
+export default function MyWishes(){
+ const [wishes,setWishes]=useState([]),[events,setEvents]=useState([]),[title,setTitle]=useState(''),[file,setFile]=useState(null),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ const refresh=()=>api('/wishes/mine').then(d=>setWishes(d.wishes));
+ useEffect(()=>{refresh().catch(e=>setError(e.message));api('/events').then(d=>setEvents(d.events)).catch(e=>setError(e.message));},[]);
+ const add=async e=>{e.preventDefault();const form=e.currentTarget;setError('');setNotice('');try{if(!events.length)throw Error('Aucun événement disponible');const {id}=await api('/wishes',{method:'POST',body:{eventId:events[0].id,title}});if(file){try{await uploadWishPhoto(id,file);}catch(photoError){setNotice('Souhait ajouté, mais photo non enregistrée : '+photoError.message);}}setTitle('');setFile(null);form.reset();await refresh();}catch(err){setError(err.message);}};
+ const remove=async id=>{try{await api(`/wishes/${id}`,{method:'DELETE'});await refresh();}catch(err){setError(err.message);}};
+ const replacePhoto=async (id,selected)=>{if(!selected)return;setError('');try{await uploadWishPhoto(id,selected);await refresh();}catch(err){setError(err.message);}};
+ return <section className="panel"><h1>Ma liste de souhaits</h1><p>Les réservations et achats de tes cadeaux restent secrets.</p>{events.length>0&&<form onSubmit={add} className="inline-form"><input aria-label="Nouveau souhait" placeholder="Ex. Livre fantasy" value={title} required onChange={e=>setTitle(e.target.value)}/><label>Photo facultative (2 Mo max)<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setFile(e.target.files?.[0]||null)}/></label><button className="primary">Ajouter</button></form>}{error&&<p role="alert" className="error">{error}</p>}{notice&&<p role="status">{notice}</p>}<div className="wish-grid">{wishes.map(w=><article className="wish-card" key={w.id}>{w.has_image?<WishPhoto id={w.id} title={w.title}/>:<span aria-hidden="true">🎁</span>}<h3>{w.title}</h3><label>Ajouter ou changer la photo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>{replacePhoto(w.id,e.target.files?.[0]);e.target.value='';}}/></label><button onClick={()=>remove(w.id)}>Supprimer</button></article>)}</div></section>;
+}

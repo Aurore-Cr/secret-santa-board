@@ -1,20 +1,23 @@
-import Database from 'better-sqlite3';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const file = path.resolve(root, process.env.DB_PATH || './data/noel.sqlite');
+import Database from "better-sqlite3";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+const root = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../..",
+);
+const file = path.resolve(root, process.env.DB_PATH || "./data/noel.sqlite");
 fs.mkdirSync(path.dirname(file), { recursive: true });
 export const db = new Database(file);
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+db.pragma("journal_mode = WAL");
+db.pragma("foreign_keys = ON");
 db.exec(`
 CREATE TABLE IF NOT EXISTS users (
  id INTEGER PRIMARY KEY AUTOINCREMENT,
  display_name TEXT NOT NULL,
  email TEXT NOT NULL UNIQUE,
  password_hash TEXT NOT NULL,
- role TEXT NOT NULL CHECK(role IN ('admin','family','guest')),
+ role TEXT NOT NULL CHECK(role IN ('admin','adult','child')),
  birthday TEXT,
  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
